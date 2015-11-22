@@ -52,8 +52,8 @@ From theory, we know that the sampled variance is a good estimator of the actual
 variance of our population. The expected variance is: $$1/\lambda^2=25$$ Our 
 sampled average variance is `r round(mean(vars), 4)`, which is close to the theoretical 
 value, but it is not so close as the previously calculated estimator for the mean.
-It seems that for accurately estimating the variance, a second order statistic, we 
-need much more repetitions.
+It seems that for accurately estimating the variance, a second order statistic, we
+need more repetitions.
 
 ```{r}
 1/lambda^2

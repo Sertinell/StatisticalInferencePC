@@ -1,0 +1,143 @@
+---
+title: "Analyzing ToothGrowth data"
+author: "Sergio Martínez Tornell"
+date: "22 November 2015"
+output: pdf_document
+---
+## Summary
+In this report we analyze the ToothGrowth dataset from package _datasets_ in $R$
+we found that the outcome len is strongly related with dose and supp. Moreover, for certain _doses_, there is a significant difference for different _supp_.
+
+```{r include=FALSE}
+library(datasets)
+library(dplyr)
+library(ggplot2)
+data <- ToothGrowth
+```
+
+## Exploratory analysis 
+
+First, get a summary of the data.
+```{r}
+summary(data)
+str(data)
+```
+
+The data has 3 columns:
+
+* **len:** Which is the outcome value.
+* **supp:** Which seems to be a factor of the experiment.
+* **dose:** Which is a numerical factor which takes only three values: $0.5$, $1$, $2$.
+
+Summarize and plot a histogram of the **len**.
+
+```{r echo=FALSE}
+summary(data$len)
+hist(data$len, xlab= "len")
+```
+
+Check whether supp and dose are related
+
+```{r echo=FALSE}
+knitr::kable(table(data$supp, data$dose))
+```
+
+It seems that both were factors of the experiment.
+
+Do some qplot:
+
+```{r echo=FALSE}
+qplot(data$dose, data$len, color = data$supp)
+```
+
+It seems at *doses* of 0.5 and 1.0 each *supp* has a slightly different effect on
+the outcome. However at *dose* 2.0 it seems there is no difference between
+*supps*. Moreover, it seems to be a correlation between *dose* and *len*
+independently of the *supp*.
+
+## Analysis
+
+### Objective of the analysis
+
+We want to validate our hypotheses stated at the end of the previous section:
+1. There is a difference in the outcome *len* between different *doses*
+2. There is a difference in the outcome *len* at *doses* 0.5 and 1.0 between the
+different *supps*.
+3. There is **NO** difference in the outcome *len* at *dose* 2.0 between the 
+different *supps*.
+
+
+### Validate the impact of *dose* in *len*
+
+To simplify, we test if there is a significant difference between 0.5 and 2.0
+*doses*. Since we can not establish a relationship between the measurements, we
+have performed a $t.test$ for not paired populations assuming equal variance for
+both populations.
+
+```{r}
+results <- t.test(data$len[data$dose == 0.5], data$len[data$dose == 2.0],
+                  var.equal = TRUE, paired = FALSE)
+results
+```
+
+We have found that there is a mean difference of 
+$`r results$estimate[1]-results$estimate[2]`$ with a p value of $`r results$p.value`$.
+A very small $p$ value suggest that this relationship is strong and it is rarely
+related to chance alone. We can confirm our hypotheses: **A bigger dose produce a
+bigger _len_**.
+
+### Validate the impact of *supp* in *len* at different *doses*
+
+#### Testing the impact at *dose* $0.5$
+
+```{r}
+results <- t.test(data$len[data$dose == 0.5 & data$supp == "VC" ], 
+                  data$len[data$dose == 0.5 & data$supp == "OJ" ],
+                  var.equal = TRUE, paired = FALSE)
+results
+```
+We have found that there is a mean difference ($VJ - OJ$) of 
+$`r results$estimate[1]-results$estimate[2]`$ with a p value of $`r results$p.value`$.
+A very small $p$ value suggest that this relationship is strong and it is rarely
+related to chance alone. We can confirm our hypotheses: **There is different between _supps_ at $0.5$ _dose_**.
+
+#### Testing the impact at *dose* $1.0$
+
+```{r}
+results <- t.test(data$len[data$dose == 1 & data$supp == "VC" ], 
+                  data$len[data$dose == 1 & data$supp == "OJ" ],
+                  var.equal = TRUE, paired = FALSE)
+results
+```
+We have found that there is a mean difference ($VJ - OJ$) of 
+$`r results$estimate[1]-results$estimate[2]`$ with a p value of 
+$`r results$p.value`$.
+A very small $p$ value suggest that this relationship is strong and it is rarely
+related to chance alone. We can confirm our hypotheses: **There is different between _supps_ at $1$ _dose_**.
+
+#### Testing the impact at *dose* $2.0$
+
+```{r}
+results <- t.test(data$len[data$dose == 2 & data$supp == "VC" ], 
+                  data$len[data$dose == 2 & data$supp == "OJ" ],
+                  var.equal = TRUE, paired = FALSE)
+results
+```
+We have found that there is a mean difference ($VJ - OJ$) of 
+$`r results$estimate[1]-results$estimate[2]`$ with a p value of 
+$`r results$p.value`$.
+A big $p$ value suggest that this relationship is weak and it is probably
+related to chance alone. We can confirm our stated hypotheses: **There is no different between _supps_ at $2.0$ _dose_**.
+
+## Conclusion
+
+In our test we confirmed that:
+
+1. There is a difference in the outcome *len* between different *doses*
+2. There is a difference in the outcome *len* at *doses* 0.5 and 1.0 between the
+different *supps*.
+3. There is **NO** difference in the outcome *len* at *dose* 2.0 between the 
+different *supps*.
+
+The discovered relationships suggest that a better analysis considereng 
+co-related variables may be desirable.
